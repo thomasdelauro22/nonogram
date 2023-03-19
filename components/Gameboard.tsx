@@ -12,7 +12,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height }) => {
     for (let j = 0; j < width; j++) {
       pixelRow.push(<Pixel isKnown={false} isShaded={true}></Pixel>);
     }
-    pixelArray.push([<div className="flex">{pixelRow}</div>]);
+    pixelArray.push([<div className="flex justify-center">{pixelRow}</div>]);
   }
   return <>{pixelArray}</>;
 };
