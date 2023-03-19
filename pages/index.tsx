@@ -1,9 +1,8 @@
-import { Board } from "../types/Board"
+import { Board } from "../types/Board";
 
 import Gameboard from "@/components/Gameboard";
 
 export default function Home() {
-
   const board = new Board();
   const boardWidth = 5;
   const boardHeight = 5;
@@ -11,7 +10,7 @@ export default function Home() {
 
   return (
     <>
-    <Gameboard width = {boardWidth} height={boardHeight} /> 
+      <Gameboard width={boardWidth} height={boardHeight} />
     </>
-  )
+  );
 }
