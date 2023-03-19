@@ -9,7 +9,7 @@ export default function Home() {
   board.initialize(boardWidth, boardHeight);
 
   return (
-    <div className="mt-64">
+    <div className="h-screen w-screen py-64">
       <Gameboard width={boardWidth} height={boardHeight} />
     </div>
   );
