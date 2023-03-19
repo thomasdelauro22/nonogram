@@ -7,11 +7,12 @@ export type GameboardTypes = {
 
 const Gameboard: React.FC<GameboardTypes> = ({ width, height }) => {
   let pixelArray: JSX.Element[][] = [];
-  for (let i = 0; i < width; i++) {
-    pixelArray.push([]);
-    for (let j = 0; j < height; j++) {
-      pixelArray[i].push(<Pixel isKnown={false} isShaded={true}></Pixel>);
+  for (let i = 0; i < height; i++) {
+    let pixelRow: JSX.Element[] = [];
+    for (let j = 0; j < width; j++) {
+      pixelRow.push(<Pixel isKnown={false} isShaded={true}></Pixel>);
     }
+    pixelArray.push([<div className="flex">{pixelRow}</div>]);
   }
   return <>{pixelArray}</>;
 };
