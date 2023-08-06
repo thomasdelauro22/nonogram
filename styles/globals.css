@@ -131,3 +131,8 @@ a {
   border: black;
   border-radius: 2px;
 }
+
+#hint
+{
+    white-space:pre-wrap;
+}
