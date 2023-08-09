@@ -31,7 +31,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     );
   }
   pixelArray.push([
-    <div className="flex flex-row relative justify-center ml-[1.3rem] -mt-32">
+    <div className="flex flex-row relative justify-center ml-[1.3rem] -mt-48">
       {colHints}
     </div>,
   ]);
