@@ -1,15 +1,25 @@
 export type PixelTypes = {
-  isKnown: boolean;
-  isShaded: boolean;
+  stateControls: any;
 };
 
-const Pixel: React.FC<PixelTypes> = ({ isKnown, isShaded }) => {
-  if (!isKnown) {
-    return <div className="unknown m-1"></div>;
-  } else if (isShaded) {
-    return <div className="shaded m-1"></div>;
-  }
-  return <div className="unshaded m-1"></div>;
+const Pixel: React.FC<PixelTypes> = ({ stateControls }) => {
+  let [state, setState] = stateControls;
+
+  const handleClick = () => {
+    if (state === "unknown") {
+      setState("shaded");
+    } else if (state === "shaded") {
+      setState("unshaded");
+    } else {
+      setState("unknown");
+    }
+  };
+
+  return (
+    <div className={`${stateControls[0]} m-1`} onClick={handleClick}>
+      {state === "unshaded" ? <div className="ml-[0.275rem] noHover">&#10060;</div> : <></>}
+    </div>
+  );
 };
 
 export default Pixel;

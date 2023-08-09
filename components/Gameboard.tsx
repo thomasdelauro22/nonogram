@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Hints from "./Hints";
 import Pixel from "./Pixel";
 
@@ -9,6 +10,17 @@ export type GameboardTypes = {
 
 const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   let pixelArray: JSX.Element[][] = [];
+  let pixelStates: any[][] = [];
+
+  // Construct initial pixel state
+  for (let i = 0; i < height; i++) {
+    let pixelRow = [];
+    for (let j = 0; j < width; j++) {
+      const [pixelState, setPixelState] = useState('unknown');
+      pixelRow.push([pixelState, setPixelState])
+    }
+    pixelStates.push(pixelRow);
+  } 
 
   // Find longest length hint for styling
   let longestColHintLen = 0;
@@ -26,7 +38,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         lineHints={hints[height + j]}
         isColHint={true}
         longestColHintLen={longestColHintLen}
-        classname="w-[2.06075rem]"
+        classname="w-[2.06075rem] noHover"
       ></Hints>
     );
   }
@@ -43,7 +55,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       <Hints
         lineHints={hints[i]}
         isColHint={false}
-        classname={`w-64 text-right`}
+        classname={`w-64 text-right noHover`}
         longestColHintLen={longestColHintLen}
       ></Hints>
     );
@@ -51,11 +63,11 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       if (i === 0) {
         pixelRow.push(
           <div className="flex-col">
-            <Pixel isKnown={false} isShaded={true}></Pixel>
+            <Pixel stateControls={pixelStates[i][j]}></Pixel>
           </div>
         );
       } else {
-        pixelRow.push(<Pixel isKnown={false} isShaded={true}></Pixel>);
+        pixelRow.push(<Pixel stateControls={pixelStates[i][j]}></Pixel>);
       }
     }
     pixelArray.push([

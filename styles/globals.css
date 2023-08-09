@@ -118,9 +118,14 @@ a {
   display: flex;
   width: 25px;
   height: 25px;
-  background-color: red;
+  background-color: white;
   border: black;
   border-radius: 2px;
+}
+
+.noHover{
+  pointer-events: none;
+  user-select: none;
 }
 
 .shaded {
