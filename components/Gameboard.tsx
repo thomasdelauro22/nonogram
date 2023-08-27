@@ -24,16 +24,11 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       const pixelRow = pixelStates[stateRowChange];
       const pixelRowStates = pixelRow.map((x) => x[0]);
       const pixelRowStateControls = pixelRow.map((x) => x[1]);
-      if (
-        isLineComplete(
-          hints[stateRowChange],
-          pixelRowStates
-        )
-      ) {
+      if (isLineComplete(hints[stateRowChange], pixelRowStates)) {
         // Set all unknown cells to unshaded
         for (let i = 0; i < pixelRow.length; i++) {
-          if (pixelRowStates[i] === 'unknown') {
-            pixelRowStateControls[i]('unshaded')
+          if (pixelRowStates[i] === "unknown") {
+            pixelRowStateControls[i]("unshaded");
           }
         }
       }
@@ -46,9 +41,10 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       }
 
       if (isLineComplete(hints[height + stateColChange], pixelColStates)) {
+        // Set all unknown cells to unshaded
         for (let i = 0; i < pixelColStates.length; i++) {
-          if (pixelColStates[i] === 'unknown') {
-            pixelColStateControls[i]('unshaded')
+          if (pixelColStates[i] === "unknown") {
+            pixelColStateControls[i]("unshaded");
           }
         }
       }
