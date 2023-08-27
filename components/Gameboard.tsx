@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Hints from "./Hints";
 import Pixel from "./Pixel";
+import { isLineComplete } from "@/solver/main";
 
 export type GameboardTypes = {
   width: number;
@@ -12,21 +13,63 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   let pixelArray: JSX.Element[][] = [];
   let pixelStates: any[][] = [];
 
+  // Pixels set this value each time they change
+  // so we can check the completion status of the line
+  const [stateRowChange, setStateRowChange] = useState(-1);
+  const [stateColChange, setStateColChange] = useState(-1);
+
+  useEffect(() => {
+    if (stateRowChange != -1 && stateColChange != -1) {
+      // Check if newly changed row is satisfied
+      const pixelRow = pixelStates[stateRowChange];
+      const pixelRowStates = pixelRow.map((x) => x[0]);
+      const pixelRowStateControls = pixelRow.map((x) => x[1]);
+      if (
+        isLineComplete(
+          hints[stateRowChange],
+          pixelRowStates
+        )
+      ) {
+        // Set all unknown cells to unshaded
+        for (let i = 0; i < pixelRow.length; i++) {
+          if (pixelRowStates[i] === 'unknown') {
+            pixelRowStateControls[i]('unshaded')
+          }
+        }
+      }
+      // Check if newly changed col is satisfied
+      let pixelColStates = [];
+      let pixelColStateControls = [];
+      for (let i = 0; i < height; i++) {
+        pixelColStates.push(pixelStates[i][stateColChange][0]);
+        pixelColStateControls.push(pixelStates[i][stateColChange][1]);
+      }
+
+      if (isLineComplete(hints[height + stateColChange], pixelColStates)) {
+        for (let i = 0; i < pixelColStates.length; i++) {
+          if (pixelColStates[i] === 'unknown') {
+            pixelColStateControls[i]('unshaded')
+          }
+        }
+      }
+    }
+  }, [stateRowChange, stateColChange]);
+
   // Construct initial pixel state
   for (let i = 0; i < height; i++) {
     let pixelRow = [];
     for (let j = 0; j < width; j++) {
-      const [pixelState, setPixelState] = useState('unknown');
-      pixelRow.push([pixelState, setPixelState])
+      const [pixelState, setPixelState] = useState("unknown");
+      pixelRow.push([pixelState, setPixelState]);
     }
     pixelStates.push(pixelRow);
-  } 
+  }
 
   // Find longest length hint for styling
   let longestColHintLen = 0;
   for (let j = 0; j < width; j++) {
-    if (hints[height+j].length > longestColHintLen) {
-      longestColHintLen = hints[height+j].length;
+    if (hints[height + j].length > longestColHintLen) {
+      longestColHintLen = hints[height + j].length;
     }
   }
 
@@ -63,11 +106,25 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       if (i === 0) {
         pixelRow.push(
           <div className="flex-col">
-            <Pixel stateControls={pixelStates[i][j]}></Pixel>
+            <Pixel
+              stateControls={pixelStates[i][j]}
+              setStateRowChange={setStateRowChange}
+              setStateColChange={setStateColChange}
+              row={i}
+              col={j}
+            ></Pixel>
           </div>
         );
       } else {
-        pixelRow.push(<Pixel stateControls={pixelStates[i][j]}></Pixel>);
+        pixelRow.push(
+          <Pixel
+            stateControls={pixelStates[i][j]}
+            setStateRowChange={setStateRowChange}
+            setStateColChange={setStateColChange}
+            row={i}
+            col={j}
+          ></Pixel>
+        );
       }
     }
     pixelArray.push([
