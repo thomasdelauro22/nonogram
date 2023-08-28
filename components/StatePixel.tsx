@@ -23,7 +23,13 @@ const Pixel: React.FC<StatePixelTypes> = ({
       onClick={handleClick}
     >
       {stateValue === "unshaded" ? (
-        <div className={`${hasBorder ? "ml-[0.15rem] -mt-[0.1rem]" : "ml-[0.275rem]"} noHover`}>&#10060;</div>
+        <div
+          className={`${
+            hasBorder ? "ml-[0.15rem] -mt-[0.1rem]" : "ml-[0.275rem]"
+          } noHover`}
+        >
+          &#10060;
+        </div>
       ) : (
         <></>
       )}

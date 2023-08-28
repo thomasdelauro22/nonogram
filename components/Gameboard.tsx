@@ -52,6 +52,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           }
         }
       }
+      setStateColChange(-1);
+      setStateRowChange(-1);
     }
   }, [stateRowChange, stateColChange]);
 

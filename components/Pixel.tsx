@@ -20,11 +20,10 @@ const Pixel: React.FC<PixelTypes> = ({
   const handleClick = () => {
     // Change directly to the mouse state if unknown
     // Otherwise, make it unknown
-    if (state ==="unknown") {
+    if (state === "unknown") {
       setState(mouseState);
-    }
-    else {
-        setState("unknown");
+    } else {
+      setState("unknown");
     }
     setStateColChange(col);
     setStateRowChange(row);

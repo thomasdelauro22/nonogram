@@ -121,7 +121,7 @@ a {
   border-radius: 2px;
 }
 
-.noHover{
+.noHover {
   pointer-events: none;
   user-select: none;
 }
@@ -134,7 +134,6 @@ a {
   border-radius: 2px;
 }
 
-#hint
-{
-    white-space:pre-wrap;
+#hint {
+  white-space: pre-wrap;
 }
