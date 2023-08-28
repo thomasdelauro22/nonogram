@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import Hints from "./Hints";
 import Pixel from "./Pixel";
-import { isLineComplete } from "@/solver/main";
+import {
+  isLineComplete,
+  numEndHintsSatisfied,
+  numStartHintsSatisfied,
+} from "@/solver/line";
 import StatePixel from "./StatePixel";
 
 export type GameboardTypes = {
@@ -22,35 +26,66 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   // Controls what state the pixels are set to when clicked
   const [mouseState, setMouseState] = useState("shaded");
 
+  // Keeps track of which hints are satisfied
+  let satisfiedHints: any[] = [];
+  for (let i = 0; i < hints.length; i++) {
+    const [lineHintsSatisfied, setLineHintsSatsisfied] = useState({
+      start: 0,
+      end: 0,
+    });
+    satisfiedHints.push([lineHintsSatisfied, setLineHintsSatsisfied]);
+  }
+
   useEffect(() => {
-    if (stateRowChange != -1 && stateColChange != -1) {
+    if (stateRowChange !== -1 && stateColChange !== -1) {
       // Check if newly changed row is satisfied
       const pixelRow = pixelStates[stateRowChange];
       const pixelRowStates = pixelRow.map((x) => x[0]);
       const pixelRowStateControls = pixelRow.map((x) => x[1]);
-      if (isLineComplete(hints[stateRowChange], pixelRowStates)) {
+      const pixelRowHints = hints[stateRowChange];
+      if (isLineComplete(pixelRowHints, pixelRowStates)) {
         // Set all unknown cells to unshaded
         for (let i = 0; i < pixelRow.length; i++) {
           if (pixelRowStates[i] === "unknown") {
             pixelRowStateControls[i]("unshaded");
           }
         }
+        satisfiedHints[stateRowChange][1]({
+          start: pixelRowHints.length,
+          end: 0,
+        });
+      } else {
+        // Update row's completed hints
+        satisfiedHints[stateRowChange][1]({
+          start: numStartHintsSatisfied(pixelRowHints, pixelRowStates),
+          end: numEndHintsSatisfied(pixelRowHints, pixelRowStates),
+        });
       }
-      // Check if newly changed col is satisfied
       let pixelColStates = [];
       let pixelColStateControls = [];
+      const pixelColHints = hints[height + stateColChange];
       for (let i = 0; i < height; i++) {
         pixelColStates.push(pixelStates[i][stateColChange][0]);
         pixelColStateControls.push(pixelStates[i][stateColChange][1]);
       }
-
-      if (isLineComplete(hints[height + stateColChange], pixelColStates)) {
+      // Check if newly changed col is satisfied
+      if (isLineComplete(pixelColHints, pixelColStates)) {
         // Set all unknown cells to unshaded
         for (let i = 0; i < pixelColStates.length; i++) {
           if (pixelColStates[i] === "unknown") {
             pixelColStateControls[i]("unshaded");
           }
         }
+        satisfiedHints[stateColChange + height][1]({
+          start: pixelColHints.length,
+          end: 0,
+        });
+      } else {
+        // Update col's completed hints
+        satisfiedHints[stateColChange + height][1]({
+          start: numStartHintsSatisfied(pixelColHints, pixelColStates),
+          end: numEndHintsSatisfied(pixelColHints, pixelColStates),
+        });
       }
       setStateColChange(-1);
       setStateRowChange(-1);
@@ -81,6 +116,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     colHints.push(
       <Hints
         lineHints={hints[height + j]}
+        startHintsSatisfied={satisfiedHints[height + j][0].start}
+        endHintsSatisfied={satisfiedHints[height + j][0].end}
         isColHint={true}
         longestColHintLen={longestColHintLen}
         classname="w-[2.06075rem] noHover"
@@ -100,6 +137,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     pixelRow.push(
       <Hints
         lineHints={hints[i]}
+        startHintsSatisfied={satisfiedHints[i][0].start}
+        endHintsSatisfied={satisfiedHints[i][0].end}
         isColHint={false}
         classname={`w-64 text-right noHover`}
         longestColHintLen={longestColHintLen}

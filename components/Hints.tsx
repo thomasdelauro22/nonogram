@@ -1,5 +1,9 @@
+import _ from "lodash";
+
 export interface HintProps {
   lineHints: string[];
+  startHintsSatisfied: number;
+  endHintsSatisfied: number;
   isColHint: boolean;
   classname?: string;
   longestColHintLen: number; // for column hints
@@ -7,24 +11,33 @@ export interface HintProps {
 
 const Hints: React.FC<HintProps> = ({
   lineHints,
+  startHintsSatisfied,
+  endHintsSatisfied,
   isColHint,
   classname,
   longestColHintLen,
 }) => {
-  let hintsStr: string = "";
+  let hintsArr: any[] = [];
   const delimiter = isColHint ? "\n" : " ";
-  for (let hint of lineHints) {
-    hintsStr = hintsStr.concat(hint + delimiter);
+  for (let i = 0; i < lineHints.length; i++) {
+    const hint = lineHints[i];
+    const isSatified =
+      i < startHintsSatisfied || i > lineHints.length - endHintsSatisfied;
+    hintsArr.push(
+      <span className={`${isSatified ? "text-yellow-300" : ""}`}>{`${
+        hint + delimiter
+      }`}</span>
+    );
   }
 
   if (isColHint) {
-    while (hintsStr.length < 2 * longestColHintLen) {
-      hintsStr = " \n" + hintsStr;
+    while (hintsArr.length < longestColHintLen) {
+      hintsArr = _.concat(<span>{" \n"}</span>, hintsArr);
     }
   }
   return (
     <div className={classname} id="hint">
-      {hintsStr}
+      <p>{hintsArr}</p>
     </div>
   );
 };
