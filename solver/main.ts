@@ -3,7 +3,6 @@ import _ from "lodash";
 export const isLineComplete = (hints: string[], line: string[]): boolean => {
   // Idea is to construct a new hint based on the current line state
   // and check to see if it's the same as that line's hints
-  console.log(`real ${hints}`)
   const currLineHints = [];
   let currShadedRun = 0;
   for (const state of line) {
