@@ -18,9 +18,9 @@ const Pixel: React.FC<PixelTypes> = ({
   let [state, setState] = stateControls;
 
   const handleClick = () => {
-    // Change directly to the mouse state
+    // Change directly to the mouse state if unknown
     // Otherwise, make it unknown
-    if (state !== mouseState) {
+    if (state ==="unknown") {
       setState(mouseState);
     }
     else {
