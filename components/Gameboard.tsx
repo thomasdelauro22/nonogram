@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Hints from "./Hints";
 import Pixel from "./Pixel";
 import { isLineComplete } from "@/solver/main";
+import StatePixel from "./StatePixel";
 
 export type GameboardTypes = {
   width: number;
@@ -17,6 +18,9 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   // so we can check the completion status of the line
   const [stateRowChange, setStateRowChange] = useState(-1);
   const [stateColChange, setStateColChange] = useState(-1);
+
+  // Controls what state the pixels are set to when clicked
+  const [mouseState, setMouseState] = useState("shaded");
 
   useEffect(() => {
     if (stateRowChange != -1 && stateColChange != -1) {
@@ -108,6 +112,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           setStateColChange={setStateColChange}
           row={i}
           col={j}
+          mouseState={mouseState}
         ></Pixel>
       );
     }
@@ -118,7 +123,23 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     ]);
   }
 
-  return <>{pixelArray}</>;
+  return (
+    <>
+      {pixelArray}
+      <div className="flex flex-row relative justify-center mt-8">
+        <StatePixel
+          currState={mouseState}
+          stateValue="shaded"
+          setMouseState={setMouseState}
+        ></StatePixel>
+        <StatePixel
+          currState={mouseState}
+          stateValue="unshaded"
+          setMouseState={setMouseState}
+        ></StatePixel>
+      </div>
+    </>
+  );
 };
 
 export default Gameboard;

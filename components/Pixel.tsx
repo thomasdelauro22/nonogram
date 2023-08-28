@@ -4,6 +4,7 @@ export type PixelTypes = {
   row: number;
   setStateColChange: any;
   col: number;
+  mouseState: string;
 };
 
 const Pixel: React.FC<PixelTypes> = ({
@@ -12,16 +13,18 @@ const Pixel: React.FC<PixelTypes> = ({
   row,
   setStateColChange,
   col,
+  mouseState,
 }) => {
   let [state, setState] = stateControls;
 
   const handleClick = () => {
-    if (state === "unknown") {
-      setState("shaded");
-    } else if (state === "shaded") {
-      setState("unshaded");
-    } else {
-      setState("unknown");
+    // Change directly to the mouse state
+    // Otherwise, make it unknown
+    if (state !== mouseState) {
+      setState(mouseState);
+    }
+    else {
+        setState("unknown");
     }
     setStateColChange(col);
     setStateRowChange(row);
