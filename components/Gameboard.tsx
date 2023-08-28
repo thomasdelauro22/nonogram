@@ -90,6 +90,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   // Place rows of pixels
   for (let i = 0; i < height; i++) {
     let pixelRow: JSX.Element[] = [];
+    // Row hint
     pixelRow.push(
       <Hints
         lineHints={hints[i]}
@@ -99,29 +100,16 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       ></Hints>
     );
     for (let j = 0; j < width; j++) {
-      if (i === 0) {
-        pixelRow.push(
-          <div className="flex-col">
-            <Pixel
-              stateControls={pixelStates[i][j]}
-              setStateRowChange={setStateRowChange}
-              setStateColChange={setStateColChange}
-              row={i}
-              col={j}
-            ></Pixel>
-          </div>
-        );
-      } else {
-        pixelRow.push(
-          <Pixel
-            stateControls={pixelStates[i][j]}
-            setStateRowChange={setStateRowChange}
-            setStateColChange={setStateColChange}
-            row={i}
-            col={j}
-          ></Pixel>
-        );
-      }
+      // Pixels
+      pixelRow.push(
+        <Pixel
+          stateControls={pixelStates[i][j]}
+          setStateRowChange={setStateRowChange}
+          setStateColChange={setStateColChange}
+          row={i}
+          col={j}
+        ></Pixel>
+      );
     }
     pixelArray.push([
       <div className="flex flex-row relative justify-center -ml-64">
