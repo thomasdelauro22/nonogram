@@ -1,6 +1,6 @@
-import { Board } from "../types/Board";
-
+import Button from "@/components/Button";
 import Gameboard from "@/components/Gameboard";
+import { Board } from "../types/Board";
 
 export default function Home() {
   const board = new Board();
@@ -26,7 +26,7 @@ export default function Home() {
     ["1", "1", "4"],
     ["4"],
     ["4"],
-    ["6"]
+    ["6"],
   ];
   board.initialize(boardWidth, boardHeight);
 

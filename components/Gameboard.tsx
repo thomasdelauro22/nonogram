@@ -3,6 +3,7 @@ import Hints from "./Hints";
 import Pixel from "./Pixel";
 import StatePixel from "./StatePixel";
 import { isLineComplete, numHintsSatisfied } from "@/solver/line";
+import Button from "./Button";
 
 export type GameboardTypes = {
   width: number;
@@ -13,6 +14,20 @@ export type GameboardTypes = {
 const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   let pixelArray: JSX.Element[][] = [];
   let pixelStates: any[][] = [];
+
+  const resetBoard = () => {
+    for (let pixelRow of pixelStates) {
+      for (let pixel of pixelRow) {
+        pixel[1]("unknown");
+      }
+    }
+    for (let hint of satisfiedHints) {
+      hint[1]({
+        start: 0,
+        end: 0,
+      });
+    }
+  };
 
   // Pixels set this value each time they change
   // so we can check the completion status of the line
@@ -168,12 +183,15 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           currState={mouseState}
           stateValue="shaded"
           setMouseState={setMouseState}
-        ></StatePixel>
+        />
         <StatePixel
           currState={mouseState}
           stateValue="unshaded"
           setMouseState={setMouseState}
-        ></StatePixel>
+        />
+      </div>
+      <div className="flex flex-row relative justify-center mt-8">
+        <Button text="Reset" onClick={resetBoard} />
       </div>
     </>
   );
