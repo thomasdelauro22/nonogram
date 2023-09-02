@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
 import Hints from "./Hints";
 import Pixel from "./Pixel";
-import {
-  isLineComplete,
-  numEndHintsSatisfied,
-  numStartHintsSatisfied,
-} from "@/solver/line";
 import StatePixel from "./StatePixel";
+import { isLineComplete, numHintsSatisfied } from "@/solver/line";
 
 export type GameboardTypes = {
   width: number;
@@ -57,8 +53,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       } else {
         // Update row's completed hints
         satisfiedHints[stateRowChange][1]({
-          start: numStartHintsSatisfied(pixelRowHints, pixelRowStates),
-          end: numEndHintsSatisfied(pixelRowHints, pixelRowStates),
+          start: numHintsSatisfied(pixelRowHints, pixelRowStates, true),
+          end: numHintsSatisfied(pixelRowHints, pixelRowStates, false),
         });
       }
       let pixelColStates = [];
@@ -83,8 +79,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       } else {
         // Update col's completed hints
         satisfiedHints[stateColChange + height][1]({
-          start: numStartHintsSatisfied(pixelColHints, pixelColStates),
-          end: numEndHintsSatisfied(pixelColHints, pixelColStates),
+          start: numHintsSatisfied(pixelColHints, pixelColStates, true),
+          end: numHintsSatisfied(pixelColHints, pixelColStates, false),
         });
       }
       setStateColChange(-1);

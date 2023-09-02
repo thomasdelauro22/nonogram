@@ -22,9 +22,9 @@ const Hints: React.FC<HintProps> = ({
   for (let i = 0; i < lineHints.length; i++) {
     const hint = lineHints[i];
     const isSatified =
-      i < startHintsSatisfied || i > lineHints.length - endHintsSatisfied;
+      i < startHintsSatisfied || i >= lineHints.length - endHintsSatisfied;
     hintsArr.push(
-      <span className={`${isSatified ? "text-yellow-300" : ""}`}>{`${
+      <span className={`${isSatified ? "text-gray-100" : ""}`}>{`${
         hint + delimiter
       }`}</span>
     );
