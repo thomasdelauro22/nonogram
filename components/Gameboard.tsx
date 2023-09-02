@@ -191,7 +191,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         />
       </div>
       <div className="flex flex-row relative justify-center mt-8">
-        <Button text="Reset" onClick={resetBoard} />
+        <Button text="Reset" onClick={resetBoard} className="mb-16"/>
       </div>
     </>
   );
