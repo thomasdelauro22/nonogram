@@ -24,7 +24,7 @@ const Hints: React.FC<HintProps> = ({
     const isSatified =
       i < startHintsSatisfied || i >= lineHints.length - endHintsSatisfied;
     hintsArr.push(
-      <span className={`${isSatified ? "text-gray-100" : ""}`}>{`${
+      <span className={`${isSatified ? "text-gray-200" : "text-green-500"}`}>{`${
         hint + delimiter
       }`}</span>
     );

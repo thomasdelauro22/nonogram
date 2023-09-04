@@ -37,6 +37,12 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   // Controls what state the pixels are set to when clicked
   const [mouseState, setMouseState] = useState("shaded");
 
+  // Used for drag clicking
+  const [mouseDownRow, setMouseDownRow] = useState(-1);
+  const [mouseDownCol, setMouseDownCol] = useState(-1);
+  const [mouseUpRow, setMouseUpRow] = useState(-1);
+  const [mouseUpCol, setMouseUpCol] = useState(-1);
+
   // Keeps track of which hints are satisfied
   let satisfiedHints: any[] = [];
   for (let i = 0; i < hints.length; i++) {
@@ -46,6 +52,61 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     });
     satisfiedHints.push([lineHintsSatisfied, setLineHintsSatsisfied]);
   }
+
+  // Used for shading multiple pixel at once via dragging the mouse
+  useEffect(() => {
+    if (
+      mouseUpCol !== -1 &&
+      mouseUpRow !== -1 &&
+      !(mouseDownCol === mouseUpCol && mouseDownRow === mouseUpRow)
+    ) {
+      // Check if the rows or cols match
+      // If so, apply shading to entire line if ont all cells are that state
+      // Otherwise, set them all to unknown
+      if (mouseDownCol === mouseUpCol) {
+        const minRow = Math.min(mouseDownRow, mouseUpRow);
+        const maxRow = Math.max(mouseDownRow, mouseUpRow);
+        let allMouseState = true;
+        for (let i = minRow; i < maxRow + 1; i++) {
+          if (pixelStates[i][mouseDownCol][0] !== mouseState) {
+            allMouseState = false;
+            break;
+          }
+        }
+        for (let i = minRow; i < maxRow + 1; i++) {
+          pixelStates[i][mouseDownCol][1](
+            allMouseState ? "unknown" : mouseState
+          );
+          setStateRowChange(i);
+          setStateColChange(mouseDownCol);
+        }
+      }
+      if (mouseDownRow === mouseUpRow) {
+        const minCol = Math.min(mouseDownCol, mouseUpCol);
+        const maxCol = Math.max(mouseDownCol, mouseUpCol);
+        let allMouseState = true;
+        for (let i = minCol; i < maxCol + 1; i++) {
+          if (pixelStates[mouseDownRow][i][0] !== mouseState) {
+            allMouseState = false;
+            break;
+          }
+        }
+        for (let i = minCol; i < maxCol + 1; i++) {
+          pixelStates[mouseDownRow][i][1](
+            allMouseState ? "unknown" : mouseState
+          );
+          setStateRowChange(mouseDownRow);
+          setStateColChange(i);
+        }
+      }
+    }
+    if (mouseUpCol !== -1 && mouseUpRow !== -1) {
+      setMouseDownCol(-1);
+      setMouseDownRow(-1);
+      setMouseUpCol(-1);
+      setMouseUpRow(-1);
+    }
+  });
 
   useEffect(() => {
     if (stateRowChange !== -1 && stateColChange !== -1) {
@@ -165,6 +226,12 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           row={i}
           col={j}
           mouseState={mouseState}
+          mouseDownCol={mouseDownCol}
+          mouseDownRow={mouseDownRow}
+          setMouseDownCol={setMouseDownCol}
+          setMouseDownRow={setMouseDownRow}
+          setMouseUpCol={setMouseUpCol}
+          setMouseUpRow={setMouseUpRow}
         ></Pixel>
       );
     }
@@ -191,7 +258,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         />
       </div>
       <div className="flex flex-row relative justify-center mt-8">
-        <Button text="Reset" onClick={resetBoard} className="mb-16"/>
+        <Button text="Reset" onClick={resetBoard} className="mb-16" />
       </div>
     </>
   );

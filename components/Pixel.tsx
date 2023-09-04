@@ -5,6 +5,12 @@ export type PixelTypes = {
   setStateColChange: any;
   col: number;
   mouseState: string;
+  mouseDownRow: number;
+  mouseDownCol: number;
+  setMouseDownRow: any;
+  setMouseDownCol: any;
+  setMouseUpRow: any;
+  setMouseUpCol: any;
 };
 
 const Pixel: React.FC<PixelTypes> = ({
@@ -14,8 +20,24 @@ const Pixel: React.FC<PixelTypes> = ({
   setStateColChange,
   col,
   mouseState,
+  mouseDownRow,
+  mouseDownCol,
+  setMouseDownRow,
+  setMouseDownCol,
+  setMouseUpRow,
+  setMouseUpCol,
 }) => {
   let [state, setState] = stateControls;
+
+  const onMouseDown = () => {
+    setMouseDownCol(col);
+    setMouseDownRow(row);
+  };
+
+  const onMouseUp = () => {
+    setMouseUpCol(col);
+    setMouseUpRow(row);
+  };
 
   const handleClick = () => {
     // Change directly to the mouse state if unknown
@@ -30,7 +52,12 @@ const Pixel: React.FC<PixelTypes> = ({
   };
 
   return (
-    <div className={`${stateControls[0]} m-1`} onClick={handleClick}>
+    <div
+      className={`${stateControls[0]} m-1`}
+      onClick={handleClick}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+    >
       {state === "unshaded" ? (
         <div className="ml-[0.275rem] noHover">&#10060;</div>
       ) : (
