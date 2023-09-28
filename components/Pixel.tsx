@@ -1,3 +1,5 @@
+import { forwardRef } from "react";
+
 export type PixelTypes = {
   stateControls: any;
   setStateRowChange: any;
@@ -13,20 +15,18 @@ export type PixelTypes = {
   setMouseUpCol: any;
 };
 
-const Pixel: React.FC<PixelTypes> = ({
+const Pixel = forwardRef<HTMLDivElement,PixelTypes>(({
   stateControls,
   setStateRowChange,
   row,
   setStateColChange,
   col,
   mouseState,
-  mouseDownRow,
-  mouseDownCol,
   setMouseDownRow,
   setMouseDownCol,
   setMouseUpRow,
   setMouseUpCol,
-}) => {
+}, ref) => {
   let [state, setState] = stateControls;
 
   const onMouseDown = () => {
@@ -53,6 +53,7 @@ const Pixel: React.FC<PixelTypes> = ({
 
   return (
     <div
+      ref={ref}
       className={`${stateControls[0]} m-1`}
       onClick={handleClick}
       onMouseDown={onMouseDown}
@@ -65,6 +66,6 @@ const Pixel: React.FC<PixelTypes> = ({
       )}
     </div>
   );
-};
+});
 
 export default Pixel;
