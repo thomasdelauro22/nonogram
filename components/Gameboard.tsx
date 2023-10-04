@@ -62,12 +62,36 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       const pixelRowStates = pixelRow.map((x) => x[0]);
       const pixelRowStateControls = pixelRow.map((x) => x[1]);
       const pixelRowHints = hints[rowChange];
+      const colsToCheck: number[] = [];
       if (isLineComplete(pixelRowHints, pixelRowStates)) {
         // Set all unknown cells to unshaded
         for (let i = 0; i < pixelRow.length; i++) {
           if (pixelRowStates[i] === "unknown") {
+            colsToCheck.push(i);
             pixelRowStateControls[i]("unshaded");
           }
+        }
+        // check if the new unknowns complete any column hints
+        for (let colToCheck of colsToCheck) {
+          let pixelColStates = [];
+          for (let i = 0; i < height; i++) {
+            const pixelState = pixelStates[i][colToCheck];
+            pixelColStates.push(
+                i === rowChange ? "unshaded" : pixelState[0]
+            );
+          }
+          satisfiedHints[height + colToCheck][1]({
+            start: numHintsSatisfied(
+              hints[height + colToCheck],
+              pixelColStates,
+              true
+            ),
+            end: numHintsSatisfied(
+              hints[height + colToCheck],
+              pixelColStates,
+              false
+            ),
+          });
         }
         satisfiedHints[rowChange][1]({
           start: pixelRowHints.length,
@@ -83,6 +107,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       let pixelColStates = [];
       let pixelColStateControls = [];
       const pixelColHints = hints[height + colChange];
+      const rowsToCheck: number[] = [];
       for (let i = 0; i < height; i++) {
         pixelColStates.push(pixelStates[i][colChange][0]);
         pixelColStateControls.push(pixelStates[i][colChange][1]);
@@ -93,7 +118,27 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         for (let i = 0; i < pixelColStates.length; i++) {
           if (pixelColStates[i] === "unknown") {
             pixelColStateControls[i]("unshaded");
+            rowsToCheck.push(i);
           }
+        }
+        // check if the new unknowns complete any row hints
+        for (let rowToCheck of rowsToCheck) {
+          satisfiedHints[rowToCheck][1]({
+            start: numHintsSatisfied(
+              hints[rowToCheck],
+              pixelStates[rowToCheck].map((x, i) =>
+                i === colChange ? "unshaded" : x[0]
+              ),
+              true
+            ),
+            end: numHintsSatisfied(
+              hints[rowToCheck],
+              pixelStates[rowToCheck].map((x, i) =>
+                i === colChange ? "unshaded" : x[0]
+              ),
+              false
+            ),
+          });
         }
         satisfiedHints[colChange + height][1]({
           start: pixelColHints.length,
@@ -131,7 +176,21 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           }
         }
         for (let i = minRow; i < maxRow + 1; i++) {
-          setTimeout(() => pixelRefs[i][mouseDownCol].current.click(), 0);
+          setTimeout(() => {
+            if (
+              !(
+                mouseState === "shaded" &&
+                pixelStates[i][mouseDownCol][0] === "unshaded"
+              ) &&
+              !(
+                mouseState === "unshaded" &&
+                pixelStates[i][mouseDownCol][0] === "shaded"
+              ) &&
+              (allMouseState || pixelStates[i][mouseDownCol][0] != mouseState)
+            ) {
+              pixelRefs[i][mouseDownCol].current.click();
+            }
+          });
         }
       }
       if (mouseDownRow === mouseUpRow) {
@@ -145,7 +204,21 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           }
         }
         for (let i = minCol; i < maxCol + 1; i++) {
-          setTimeout(() => pixelRefs[mouseDownRow][i].current.click(), 0);
+          setTimeout(() => {
+            if (
+              !(
+                mouseState === "shaded" &&
+                pixelStates[mouseDownRow][i][0] === "unshaded"
+              ) &&
+              !(
+                mouseState === "unshaded" &&
+                pixelStates[mouseDownRow][i][0] === "shaded"
+              ) &&
+              (allMouseState || pixelStates[mouseDownRow][i][0] !== mouseState)
+            ) {
+              pixelRefs[mouseDownRow][i].current.click();
+            }
+          });
         }
       }
     }
@@ -156,7 +229,6 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   }, [mouseUpCol, mouseUpRow]);
 
   useEffect(() => {
-    console.log(stateRowChange, stateColChange, ' just changed')
     checkRowAndCol(stateRowChange, stateColChange);
   }, [stateRowChange, stateColChange]);
 
@@ -219,7 +291,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       // Pixels
       pixelRow.push(
         <Pixel
-          ref = {pixelRefs[i][j]}
+          ref={pixelRefs[i][j]}
           stateControls={pixelStates[i][j]}
           setStateRowChange={setStateRowChange}
           setStateColChange={setStateColChange}
