@@ -1,9 +1,10 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, RefObject } from "react";
 import Hints from "./Hints";
 import Pixel from "./Pixel";
 import StatePixel from "./StatePixel";
 import { isLineComplete, numHintsSatisfied } from "@/solver/line";
 import Button from "./Button";
+import { State } from "@/types/Board";
 
 export type GameboardTypes = {
   width: number;
@@ -11,19 +12,24 @@ export type GameboardTypes = {
   hints: string[][]; // given [rowHints, colHints]
 };
 
+export type HintState = {
+  start: number;
+  end: number;
+}
+
 const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   let pixelArray: JSX.Element[][] = [];
-  let pixelStates: any[][] = [];
-  let pixelRefs: any[][] = [];
+  let pixelStates: State<string>[][] = [];
+  let pixelRefs: RefObject<HTMLDivElement>[][] = [];
 
   const resetBoard = () => {
     for (let pixelRow of pixelStates) {
       for (let pixel of pixelRow) {
-        pixel[1]("unknown");
+        pixel.setState("unknown");
       }
     }
     for (let hint of satisfiedHints) {
-      hint[1]({
+      hint.setState({
         start: 0,
         end: 0,
       });
@@ -45,13 +51,16 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   const [mouseUpCol, setMouseUpCol] = useState(-1);
 
   // Keeps track of which hints are satisfied
-  let satisfiedHints: any[] = [];
+  let satisfiedHints: State<HintState>[] = [];
   for (let i = 0; i < hints.length; i++) {
     const [lineHintsSatisfied, setLineHintsSatsisfied] = useState({
       start: 0,
       end: 0,
     });
-    satisfiedHints.push([lineHintsSatisfied, setLineHintsSatsisfied]);
+    satisfiedHints.push({
+      state: lineHintsSatisfied,
+      setState: setLineHintsSatsisfied,
+    });
   }
 
   // Helper function for checking/updated row/col hint progress
@@ -59,8 +68,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     if (rowChange !== -1 && colChange !== -1) {
       // Check if newly changed row is satisfied
       const pixelRow = pixelStates[rowChange];
-      const pixelRowStates = pixelRow.map((x) => x[0]);
-      const pixelRowStateControls = pixelRow.map((x) => x[1]);
+      const pixelRowStates = pixelRow.map((x) => x.state);
+      const pixelRowStateControls = pixelRow.map((x) => x.setState);
       const pixelRowHints = hints[rowChange];
       const colsToCheck: number[] = [];
       if (isLineComplete(pixelRowHints, pixelRowStates)) {
@@ -77,10 +86,10 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           for (let i = 0; i < height; i++) {
             const pixelState = pixelStates[i][colToCheck];
             pixelColStates.push(
-                i === rowChange ? "unshaded" : pixelState[0]
+              i === rowChange ? "unshaded" : pixelState.state
             );
           }
-          satisfiedHints[height + colToCheck][1]({
+          satisfiedHints[height + colToCheck].setState({
             start: numHintsSatisfied(
               hints[height + colToCheck],
               pixelColStates,
@@ -93,13 +102,13 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
             ),
           });
         }
-        satisfiedHints[rowChange][1]({
+        satisfiedHints[rowChange].setState({
           start: pixelRowHints.length,
           end: 0,
         });
       } else {
         // Update row's completed hints
-        satisfiedHints[rowChange][1]({
+        satisfiedHints[rowChange].setState({
           start: numHintsSatisfied(pixelRowHints, pixelRowStates, true),
           end: numHintsSatisfied(pixelRowHints, pixelRowStates, false),
         });
@@ -109,8 +118,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       const pixelColHints = hints[height + colChange];
       const rowsToCheck: number[] = [];
       for (let i = 0; i < height; i++) {
-        pixelColStates.push(pixelStates[i][colChange][0]);
-        pixelColStateControls.push(pixelStates[i][colChange][1]);
+        pixelColStates.push(pixelStates[i][colChange].state);
+        pixelColStateControls.push(pixelStates[i][colChange].setState);
       }
       // Check if newly changed col is satisfied
       if (isLineComplete(pixelColHints, pixelColStates)) {
@@ -123,29 +132,29 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         }
         // check if the new unknowns complete any row hints
         for (let rowToCheck of rowsToCheck) {
-          satisfiedHints[rowToCheck][1]({
+          satisfiedHints[rowToCheck].setState({
             start: numHintsSatisfied(
               hints[rowToCheck],
               pixelStates[rowToCheck].map((x, i) =>
-                i === colChange ? "unshaded" : x[0]
+                i === colChange ? "unshaded" : x.state
               ),
               true
             ),
             end: numHintsSatisfied(
               hints[rowToCheck],
               pixelStates[rowToCheck].map((x, i) =>
-                i === colChange ? "unshaded" : x[0]
+                i === colChange ? "unshaded" : x.state
               ),
               false
             ),
           });
         }
-        satisfiedHints[colChange + height][1]({
+        satisfiedHints[colChange + height].setState({
           start: pixelColHints.length,
           end: 0,
         });
       } else {
-        satisfiedHints[colChange + height][1]({
+        satisfiedHints[colChange + height].setState({
           start: numHintsSatisfied(pixelColHints, pixelColStates, true),
           end: numHintsSatisfied(pixelColHints, pixelColStates, false),
         });
@@ -170,7 +179,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         const maxRow = Math.max(mouseDownRow, mouseUpRow);
         let allMouseState = true;
         for (let i = minRow; i < maxRow + 1; i++) {
-          if (pixelStates[i][mouseDownCol][0] !== mouseState) {
+          if (pixelStates[i][mouseDownCol].state !== mouseState) {
             allMouseState = false;
             break;
           }
@@ -180,15 +189,16 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
             if (
               !(
                 mouseState === "shaded" &&
-                pixelStates[i][mouseDownCol][0] === "unshaded"
+                pixelStates[i][mouseDownCol].state === "unshaded"
               ) &&
               !(
                 mouseState === "unshaded" &&
-                pixelStates[i][mouseDownCol][0] === "shaded"
+                pixelStates[i][mouseDownCol].state === "shaded"
               ) &&
-              (allMouseState || pixelStates[i][mouseDownCol][0] != mouseState)
+              (allMouseState ||
+                pixelStates[i][mouseDownCol].state != mouseState)
             ) {
-              pixelRefs[i][mouseDownCol].current.click();
+              pixelRefs[i][mouseDownCol].current!.click();
             }
           });
         }
@@ -198,7 +208,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         const maxCol = Math.max(mouseDownCol, mouseUpCol);
         let allMouseState = true;
         for (let i = minCol; i < maxCol + 1; i++) {
-          if (pixelStates[mouseDownRow][i][0] !== mouseState) {
+          if (pixelStates[mouseDownRow][i].state !== mouseState) {
             allMouseState = false;
             break;
           }
@@ -208,15 +218,16 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
             if (
               !(
                 mouseState === "shaded" &&
-                pixelStates[mouseDownRow][i][0] === "unshaded"
+                pixelStates[mouseDownRow][i].state === "unshaded"
               ) &&
               !(
                 mouseState === "unshaded" &&
-                pixelStates[mouseDownRow][i][0] === "shaded"
+                pixelStates[mouseDownRow][i].state === "shaded"
               ) &&
-              (allMouseState || pixelStates[mouseDownRow][i][0] !== mouseState)
+              (allMouseState ||
+                pixelStates[mouseDownRow][i].state !== mouseState)
             ) {
-              pixelRefs[mouseDownRow][i].current.click();
+              pixelRefs[mouseDownRow][i].current!.click();
             }
           });
         }
@@ -238,7 +249,10 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     let pixelRefRow = [];
     for (let j = 0; j < width; j++) {
       const [pixelState, setPixelState] = useState("unknown");
-      pixelRow.push([pixelState, setPixelState]);
+      pixelRow.push({
+        state: pixelState,
+        setState: setPixelState,
+      });
       pixelRefRow.push(useRef<HTMLDivElement>(null));
     }
     pixelStates.push(pixelRow);
@@ -259,8 +273,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     colHints.push(
       <Hints
         lineHints={hints[height + j]}
-        startHintsSatisfied={satisfiedHints[height + j][0].start}
-        endHintsSatisfied={satisfiedHints[height + j][0].end}
+        startHintsSatisfied={satisfiedHints[height + j].state.start}
+        endHintsSatisfied={satisfiedHints[height + j].state.end}
         isColHint={true}
         longestColHintLen={longestColHintLen}
         classname="w-[2.06075rem] noHover"
@@ -280,8 +294,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     pixelRow.push(
       <Hints
         lineHints={hints[i]}
-        startHintsSatisfied={satisfiedHints[i][0].start}
-        endHintsSatisfied={satisfiedHints[i][0].end}
+        startHintsSatisfied={satisfiedHints[i].state.start}
+        endHintsSatisfied={satisfiedHints[i].state.end}
         isColHint={false}
         classname={`w-64 text-right noHover`}
         longestColHintLen={longestColHintLen}

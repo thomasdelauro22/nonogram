@@ -1,7 +1,8 @@
+import { State } from "@/types/Board";
 import { forwardRef } from "react";
 
 export type PixelTypes = {
-  stateControls: any;
+  stateControls: State<string>;
   setStateRowChange: any;
   row: number;
   setStateColChange: any;
@@ -27,7 +28,8 @@ const Pixel = forwardRef<HTMLDivElement,PixelTypes>(({
   setMouseUpRow,
   setMouseUpCol,
 }, ref) => {
-  let [state, setState] = stateControls;
+  let state = stateControls.state;
+  let setState = stateControls.setState;
 
   const onMouseDown = () => {
     setMouseDownCol(col);
@@ -54,7 +56,7 @@ const Pixel = forwardRef<HTMLDivElement,PixelTypes>(({
   return (
     <div
       ref={ref}
-      className={`${stateControls[0]} m-1`}
+      className={`${state} m-1`}
       onClick={handleClick}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}

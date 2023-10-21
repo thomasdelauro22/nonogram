@@ -17,7 +17,7 @@ const Hints: React.FC<HintProps> = ({
   classname,
   longestColHintLen,
 }) => {
-  let hintsArr: any[] = [];
+  let hintsArr: JSX.Element[] = [];
   const delimiter = isColHint ? "\n" : " ";
   for (let i = 0; i < lineHints.length; i++) {
     const hint = lineHints[i];
