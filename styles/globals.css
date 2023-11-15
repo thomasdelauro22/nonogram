@@ -134,6 +134,10 @@ a {
   border-radius: 2px;
 }
 
+div.pointer {
+  cursor: pointer;
+}
+
 #hint {
   white-space: pre-wrap;
 }

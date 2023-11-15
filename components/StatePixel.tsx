@@ -21,7 +21,7 @@ const Pixel: React.FC<StatePixelTypes> = ({
     <div
       className={`${
         hasBorder ? "border-2 border-yellow-300" : ""
-      } ${stateValue} m-1`}
+      } ${stateValue} m-1 pointer`}
       onClick={handleClick}
     >
       {stateValue === PixelState.UNSHADED ? (

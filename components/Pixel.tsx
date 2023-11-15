@@ -57,7 +57,7 @@ const Pixel = forwardRef<HTMLDivElement,PixelTypes>(({
   return (
     <div
       ref={ref}
-      className={`${state} m-1`}
+      className={`${state} m-1 pointer`}
       onClick={handleClick}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
