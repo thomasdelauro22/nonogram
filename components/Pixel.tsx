@@ -1,13 +1,14 @@
 import { State } from "@/types/Board";
+import { PixelState } from "@/utils/constants";
 import { forwardRef } from "react";
 
 export type PixelTypes = {
-  stateControls: State<string>;
+  stateControls: State<PixelState>;
   setStateRowChange: any;
   row: number;
   setStateColChange: any;
   col: number;
-  mouseState: string;
+  mouseState: PixelState;
   mouseDownRow: number;
   mouseDownCol: number;
   setMouseDownRow: any;
@@ -44,10 +45,10 @@ const Pixel = forwardRef<HTMLDivElement,PixelTypes>(({
   const handleClick = () => {
     // Change directly to the mouse state if unknown
     // Otherwise, make it unknown
-    if (state === "unknown") {
+    if (state === PixelState.UNKNOWN) {
       setState(mouseState);
     } else {
-      setState("unknown");
+      setState(PixelState.UNKNOWN);
     }
     setStateColChange(col);
     setStateRowChange(row);
@@ -61,7 +62,7 @@ const Pixel = forwardRef<HTMLDivElement,PixelTypes>(({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
     >
-      {state === "unshaded" ? (
+      {state === PixelState.UNSHADED ? (
         <div className="ml-[0.275rem] noHover">&#10060;</div>
       ) : (
         <></>

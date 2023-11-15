@@ -1,3 +1,4 @@
+import { PixelState } from "@/utils/constants";
 import _ from "lodash";
 
 export const getCurrLineHints = (
@@ -10,11 +11,11 @@ export const getCurrLineHints = (
   for (const state of line) {
     // If unknown and not checking if the line is completed
     // stop immediately, rest of line is disconnected
-    if (checkUnknowns && state === "unknown") {
+    if (checkUnknowns && state === PixelState.UNKNOWN) {
       break;
     }
     // Add to current shaded run
-    else if (state === "shaded") {
+    else if (state === PixelState.SHADED) {
       currShadedRun += 1;
     } else {
       // Non-shaded cell following shaded run

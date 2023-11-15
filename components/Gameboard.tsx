@@ -5,6 +5,7 @@ import StatePixel from "./StatePixel";
 import { isLineComplete, numHintsSatisfied } from "@/solver/line";
 import Button from "./Button";
 import { State } from "@/types/Board";
+import { PixelState } from "@/utils/constants";
 
 export type GameboardTypes = {
   width: number;
@@ -19,13 +20,13 @@ export type HintState = {
 
 const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   let pixelArray: JSX.Element[][] = [];
-  let pixelStates: State<string>[][] = [];
+  let pixelStates: State<PixelState>[][] = [];
   let pixelRefs: RefObject<HTMLDivElement>[][] = [];
 
   const resetBoard = () => {
     for (let pixelRow of pixelStates) {
       for (let pixel of pixelRow) {
-        pixel.setState("unknown");
+        pixel.setState(PixelState.UNKNOWN);
       }
     }
     for (let hint of satisfiedHints) {
@@ -42,7 +43,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   const [stateColChange, setStateColChange] = useState(-1);
 
   // Controls what state the pixels are set to when clicked
-  const [mouseState, setMouseState] = useState("shaded");
+  const [mouseState, setMouseState] = useState(PixelState.SHADED);
 
   // Used for drag clicking
   const [mouseDownRow, setMouseDownRow] = useState(-1);
@@ -75,9 +76,9 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       if (isLineComplete(pixelRowHints, pixelRowStates)) {
         // Set all unknown cells to unshaded
         for (let i = 0; i < pixelRow.length; i++) {
-          if (pixelRowStates[i] === "unknown") {
+          if (pixelRowStates[i] === PixelState.UNKNOWN) {
             colsToCheck.push(i);
-            pixelRowStateControls[i]("unshaded");
+            pixelRowStateControls[i](PixelState.UNSHADED);
           }
         }
         // check if the new unknowns complete any column hints
@@ -86,7 +87,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           for (let i = 0; i < height; i++) {
             const pixelState = pixelStates[i][colToCheck];
             pixelColStates.push(
-              i === rowChange ? "unshaded" : pixelState.state
+              i === rowChange ? PixelState.UNSHADED : pixelState.state
             );
           }
           satisfiedHints[height + colToCheck].setState({
@@ -125,8 +126,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       if (isLineComplete(pixelColHints, pixelColStates)) {
         // Set all unknown cells to unshaded
         for (let i = 0; i < pixelColStates.length; i++) {
-          if (pixelColStates[i] === "unknown") {
-            pixelColStateControls[i]("unshaded");
+          if (pixelColStates[i] === PixelState.UNKNOWN) {
+            pixelColStateControls[i](PixelState.UNSHADED);
             rowsToCheck.push(i);
           }
         }
@@ -136,14 +137,14 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
             start: numHintsSatisfied(
               hints[rowToCheck],
               pixelStates[rowToCheck].map((x, i) =>
-                i === colChange ? "unshaded" : x.state
+                i === colChange ? PixelState.UNSHADED : x.state
               ),
               true
             ),
             end: numHintsSatisfied(
               hints[rowToCheck],
               pixelStates[rowToCheck].map((x, i) =>
-                i === colChange ? "unshaded" : x.state
+                i === colChange ? PixelState.UNSHADED : x.state
               ),
               false
             ),
@@ -188,12 +189,12 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           setTimeout(() => {
             if (
               !(
-                mouseState === "shaded" &&
-                pixelStates[i][mouseDownCol].state === "unshaded"
+                mouseState === PixelState.SHADED &&
+                pixelStates[i][mouseDownCol].state === PixelState.UNSHADED
               ) &&
               !(
-                mouseState === "unshaded" &&
-                pixelStates[i][mouseDownCol].state === "shaded"
+                mouseState === PixelState.UNSHADED &&
+                pixelStates[i][mouseDownCol].state === PixelState.SHADED
               ) &&
               (allMouseState ||
                 pixelStates[i][mouseDownCol].state != mouseState)
@@ -217,12 +218,12 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           setTimeout(() => {
             if (
               !(
-                mouseState === "shaded" &&
-                pixelStates[mouseDownRow][i].state === "unshaded"
+                mouseState === PixelState.SHADED &&
+                pixelStates[mouseDownRow][i].state === PixelState.UNSHADED
               ) &&
               !(
-                mouseState === "unshaded" &&
-                pixelStates[mouseDownRow][i].state === "shaded"
+                mouseState === PixelState.UNSHADED &&
+                pixelStates[mouseDownRow][i].state === PixelState.SHADED
               ) &&
               (allMouseState ||
                 pixelStates[mouseDownRow][i].state !== mouseState)
@@ -248,7 +249,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     let pixelRow = [];
     let pixelRefRow = [];
     for (let j = 0; j < width; j++) {
-      const [pixelState, setPixelState] = useState("unknown");
+      const [pixelState, setPixelState] = useState(PixelState.UNKNOWN);
       pixelRow.push({
         state: pixelState,
         setState: setPixelState,
@@ -334,12 +335,12 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       <div className="flex flex-row relative justify-center mt-8">
         <StatePixel
           currState={mouseState}
-          stateValue="shaded"
+          stateValue={PixelState.SHADED}
           setMouseState={setMouseState}
         />
         <StatePixel
           currState={mouseState}
-          stateValue="unshaded"
+          stateValue={PixelState.UNSHADED}
           setMouseState={setMouseState}
         />
       </div>

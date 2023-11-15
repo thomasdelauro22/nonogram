@@ -1,7 +1,9 @@
+import { PixelState } from "@/utils/constants";
+
 export type StatePixelTypes = {
-  stateValue: string;
+  stateValue: PixelState;
   setMouseState: any;
-  currState: string;
+  currState: PixelState;
 };
 
 const Pixel: React.FC<StatePixelTypes> = ({
@@ -22,7 +24,7 @@ const Pixel: React.FC<StatePixelTypes> = ({
       } ${stateValue} m-1`}
       onClick={handleClick}
     >
-      {stateValue === "unshaded" ? (
+      {stateValue === PixelState.UNSHADED ? (
         <div
           className={`${
             hasBorder ? "ml-[0.15rem] -mt-[0.1rem]" : "ml-[0.275rem]"
