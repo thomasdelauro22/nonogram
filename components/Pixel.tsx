@@ -71,4 +71,6 @@ const Pixel = forwardRef<HTMLDivElement,PixelTypes>(({
   );
 });
 
+Pixel.displayName = "Pixel";
+
 export default Pixel;

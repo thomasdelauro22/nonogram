@@ -54,6 +54,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   // Keeps track of which hints are satisfied
   let satisfiedHints: State<HintState>[] = [];
   for (let i = 0; i < hints.length; i++) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [lineHintsSatisfied, setLineHintsSatsisfied] = useState({
       start: 0,
       end: 0,
@@ -261,11 +262,13 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     let pixelRow = [];
     let pixelRefRow = [];
     for (let j = 0; j < width; j++) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       const [pixelState, setPixelState] = useState(PixelState.UNKNOWN);
       pixelRow.push({
         state: pixelState,
         setState: setPixelState,
       });
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       pixelRefRow.push(useRef<HTMLDivElement>(null));
     }
     pixelStates.push(pixelRow);
@@ -295,7 +298,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     );
   }
   pixelArray.push([
-    <div className="flex flex-row relative justify-center ml-[1.3rem] -mt-48">
+    <div key={-1} className="flex flex-row relative justify-center ml-[1.3rem] -mt-48">
       {colHints}
     </div>,
   ]);
@@ -335,7 +338,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       );
     }
     pixelArray.push([
-      <div className="flex flex-row relative justify-center -ml-64">
+      <div key={i} className="flex flex-row relative justify-center -ml-64">
         {pixelRow}
       </div>,
     ]);
