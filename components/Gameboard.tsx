@@ -16,7 +16,7 @@ export type GameboardTypes = {
 export type HintState = {
   start: number;
   end: number;
-}
+};
 
 const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   let pixelArray: JSX.Element[][] = [];
@@ -107,6 +107,12 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           start: pixelRowHints.length,
           end: 0,
         });
+      } else if (!pixelRowStates.includes(PixelState.UNKNOWN)) {
+        // No unknowns and not all hints satisfied 
+        satisfiedHints[rowChange].setState({
+          start: 0,
+          end: 0,
+        });
       } else {
         // Update row's completed hints
         satisfiedHints[rowChange].setState({
@@ -152,6 +158,12 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         }
         satisfiedHints[colChange + height].setState({
           start: pixelColHints.length,
+          end: 0,
+        });
+      } else if (!pixelColStates.includes(PixelState.UNKNOWN)) {
+        // No unknowns and not all hints satisfied 
+        satisfiedHints[colChange + height].setState({
+          start: 0,
           end: 0,
         });
       } else {
