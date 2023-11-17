@@ -4,18 +4,14 @@ import Pixel from "./Pixel";
 import StatePixel from "./StatePixel";
 import { isLineComplete, numHintsSatisfied } from "@/solver/line";
 import Button from "./Button";
-import { State } from "@/types/Board";
+import { Hint, HintState, State } from "@/types/Board";
 import { PixelState } from "@/utils/constants";
+import { calculateHint } from "@/solver/hint";
 
 export type GameboardTypes = {
   width: number;
   height: number;
   hints: string[][]; // given [rowHints, colHints]
-};
-
-export type HintState = {
-  start: number;
-  end: number;
 };
 
 const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
@@ -34,6 +30,13 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         start: 0,
         end: 0,
       });
+    }
+  };
+
+  const fillHint = () => {
+    const hint = calculateHint(pixelStates, hints);
+    if (hint) {
+      pixelRefs[hint.row][hint.col].current!.click();
     }
   };
 
@@ -109,7 +112,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           end: 0,
         });
       } else if (!pixelRowStates.includes(PixelState.UNKNOWN)) {
-        // No unknowns and not all hints satisfied 
+        // No unknowns and not all hints satisfied
         satisfiedHints[rowChange].setState({
           start: 0,
           end: 0,
@@ -162,7 +165,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           end: 0,
         });
       } else if (!pixelColStates.includes(PixelState.UNKNOWN)) {
-        // No unknowns and not all hints satisfied 
+        // No unknowns and not all hints satisfied
         satisfiedHints[colChange + height].setState({
           start: 0,
           end: 0,
@@ -298,7 +301,10 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     );
   }
   pixelArray.push([
-    <div key={-1} className="flex flex-row relative justify-center ml-[1.3rem] -mt-48">
+    <div
+      key={-1}
+      className="flex flex-row relative justify-center ml-[1.3rem] -mt-48"
+    >
       {colHints}
     </div>,
   ]);
@@ -359,8 +365,13 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           setMouseState={setMouseState}
         />
       </div>
-      <div className="flex flex-row relative justify-center mt-8">
-        <Button text="Reset" onClick={resetBoard} className="mb-16" />
+      <div className="flex flex-row relative justify-center pt-2">
+        <div className="pr-2">
+          <Button text="Hint" onClick={fillHint} className="mb-16" />
+        </div>
+        <div className="pl-2">
+          <Button text="Reset" onClick={resetBoard} className="mb-16" />
+        </div>
       </div>
     </>
   );
