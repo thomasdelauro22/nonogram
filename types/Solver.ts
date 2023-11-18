@@ -1,6 +1,6 @@
 import { PixelState } from "@/utils/constants";
 
-export type OverlopTracker = {
+export type OverlapTracker = {
   state: PixelState;
   hintNum?: number;
 };
