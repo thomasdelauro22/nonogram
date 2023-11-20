@@ -4,7 +4,7 @@ import Pixel from "./Pixel";
 import StatePixel from "./StatePixel";
 import { isLineComplete, numHintsSatisfied } from "@/solver/line";
 import Button from "./Button";
-import { Hint, HintState, State } from "@/types/Board";
+import { HintState, State } from "@/types/Board";
 import { PixelState } from "@/utils/constants";
 import { calculateHint } from "@/solver/hint";
 
@@ -34,9 +34,20 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
   };
 
   const fillHint = () => {
-    const hint = calculateHint(pixelStates, hints);
+    const hint = calculateHint(pixelStates, hints, satisfiedHints);
     if (hint) {
-      pixelRefs[hint.row][hint.col].current!.click();
+      if (
+        hint.state === PixelState.SHADED &&
+        mouseState === PixelState.UNSHADED
+      ) {
+        setTimeout(() => shadedMouseStatePixelRef.current!.click());
+      } else if (
+        hint.state === PixelState.UNSHADED &&
+        mouseState === PixelState.SHADED
+      ) {
+        setTimeout(() => unshadedMouseStatePixelRef.current!.click());
+      }
+      setTimeout(() => pixelRefs[hint.row][hint.col].current!.click());
     }
   };
 
@@ -47,6 +58,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
 
   // Controls what state the pixels are set to when clicked
   const [mouseState, setMouseState] = useState(PixelState.SHADED);
+  const unshadedMouseStatePixelRef = useRef<HTMLDivElement>(null);
+  const shadedMouseStatePixelRef = useRef<HTMLDivElement>(null);
 
   // Used for drag clicking
   const [mouseDownRow, setMouseDownRow] = useState(-1);
@@ -355,11 +368,13 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       {pixelArray}
       <div className="flex flex-row relative justify-center mt-8">
         <StatePixel
+          ref={shadedMouseStatePixelRef}
           currState={mouseState}
           stateValue={PixelState.SHADED}
           setMouseState={setMouseState}
         />
         <StatePixel
+          ref={unshadedMouseStatePixelRef}
           currState={mouseState}
           stateValue={PixelState.UNSHADED}
           setMouseState={setMouseState}
