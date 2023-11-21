@@ -3,24 +3,95 @@ import { OverlapTracker } from "@/types/Solver";
 import { PixelState } from "@/utils/constants";
 
 const calculateLineOverlap = (
-  pixelStates: State<PixelState>[][],
+  pixelLine: State<PixelState>[],
   lineHints: string[],
+  satisfiedLineHints: State<HintState>,
   lineLength: number,
   isRow: boolean,
   lineNum: number,
   answers: Hint[]
 ): void => {
-  const compactLine: OverlapTracker[] = [];
-  for (let hintNum = 0; hintNum < lineHints.length; hintNum++) {
-    for (let j = 0; j < parseInt(lineHints[hintNum]); j++) {
-      compactLine.push({ state: PixelState.SHADED, hintNum: hintNum });
+  let index = 0;
+  let hintNum = 0;
+  let skipWrap = false;
+  const startCompactLine: OverlapTracker[] = [];
+  const endCompactLine: OverlapTracker[] = [];
+  while (
+    hintNum < lineHints.length - satisfiedLineHints.state.end &&
+    index < pixelLine.length
+  ) {
+    skipWrap = false;
+    const hintLength = parseInt(lineHints[hintNum]);
+    for (let j = 0; j < hintLength; j++) {
+      const pixel = pixelLine[index];
+      if (pixel.state !== PixelState.UNSHADED) {
+        startCompactLine.push({ state: PixelState.SHADED, hintNum: hintNum });
+      } else {
+        // We haven't finished the hint yet
+        // Remove all shaded pixels added
+        // And replace with unshaded
+        startCompactLine.splice(startCompactLine.length - j, j);
+        for (let k = 0; k < j; k++) {
+          startCompactLine.push({ state: PixelState.UNSHADED });
+        }
+        // Skip indexing curr hint and break
+        skipWrap = true;
+        break;
+      }
+      index++;
     }
-    if (compactLine.length < lineLength && hintNum !== lineHints.length - 1) {
-      compactLine.push({ state: PixelState.UNSHADED });
+    if (!skipWrap) {
+      if (
+        startCompactLine.length < lineLength &&
+        hintNum !== lineHints.length - 1
+      ) {
+        startCompactLine.push({ state: PixelState.UNSHADED });
+      }
+      hintNum++;
     }
+    index++;
   }
-  const lowExtremeLine = compactLine.slice();
-  const highExtremeLine = compactLine.slice();
+  index = 0;
+  hintNum = 0;
+  skipWrap = false;
+  while (
+    hintNum < lineHints.length - satisfiedLineHints.state.start &&
+    index < pixelLine.length
+  ) {
+    skipWrap = false;
+    const hintLength = parseInt(lineHints[lineHints.length - hintNum]);
+    for (let j = 0; j < hintLength; j++) {
+      const pixel = pixelLine[pixelLine.length - index - 1];
+      if (pixel.state !== PixelState.UNSHADED) {
+        endCompactLine.push({ state: PixelState.SHADED, hintNum: lineHints.length - hintNum });
+      } else {
+        // We haven't finished the hint yet
+        // Remove all shaded pixels added
+        // And replace with unshaded
+        endCompactLine.splice(endCompactLine.length - j, j);
+        for (let k = 0; k < j; k++) {
+          endCompactLine.push({ state: PixelState.UNSHADED });
+        }
+        // Skip indexing curr hint and break
+        skipWrap = true;
+        break;
+      }
+      index++;
+    }
+    if (!skipWrap) {
+      if (
+        endCompactLine.length < lineLength &&
+        hintNum !== lineHints.length - 1
+      ) {
+        endCompactLine.push({ state: PixelState.UNSHADED });
+      }
+      hintNum++;
+    }
+    index++;
+  }
+  const lowExtremeLine = startCompactLine;
+  const highExtremeLine = endCompactLine;
+  console.log(lowExtremeLine, highExtremeLine)
   while (lowExtremeLine.length < lineLength) {
     lowExtremeLine.push({ state: PixelState.UNSHADED });
     highExtremeLine.unshift({ state: PixelState.UNSHADED });
@@ -32,9 +103,11 @@ const calculateLineOverlap = (
       lowPixel.state === PixelState.SHADED &&
       highPixel.state === PixelState.SHADED &&
       lowPixel.hintNum === highPixel.hintNum &&
-      ((isRow && pixelStates[lineNum][pixel].state !== PixelState.SHADED) ||
-        (!isRow && pixelStates[pixel][lineNum].state !== PixelState.SHADED))
+      pixelLine[pixel].state !== PixelState.SHADED
     ) {
+      console.log(
+        `${JSON.stringify(lowExtremeLine)} ${JSON.stringify(highExtremeLine)}`
+      );
       answers.push({
         row: isRow ? lineNum : pixel,
         col: isRow ? pixel : lineNum,
@@ -73,6 +146,27 @@ const calculateExtends = (
       // Run ends, keep shading if not far enough from the wall
       // according to the current hint
     } else if (pixelState !== PixelState.SHADED && prevShaded) {
+      // Hint is satisfied, check if we can mark pixel 1 to the start as UNSHADED
+      if (
+        shadedRunLength === currHint &&
+        shadedRunStart > 0 &&
+        pixelLine[shadedRunStart - 1].state === PixelState.UNKNOWN &&
+        lastWallIndex + currHint === i - 1
+      ) {
+        answers.push({
+          row: isRow
+            ? lineNum
+            : isFromStart
+            ? shadedRunStart - 1
+            : pixelLine.length - shadedRunStart - 2,
+          col: isRow
+            ? isFromStart
+              ? shadedRunStart - 1
+              : pixelLine.length - shadedRunStart - 2
+            : lineNum,
+          state: PixelState.UNSHADED,
+        });
+      }
       prevShaded = false;
       currHintIndex++;
       while (i < lastWallIndex + currHint) {
@@ -94,13 +188,34 @@ const calculateExtends = (
         i++;
       }
       lastWallIndex = i + 1;
-      // Hint couldn't fit in prev space
+      // Hint couldn't fit in prev space. Mark this as the new wall
+      // and fill all cells in small space as UNSHADED
     } else if (
       pixelState === PixelState.UNSHADED &&
       !prevShaded &&
-      currHint >= i - lastWallIndex
+      currHint >= i - lastWallIndex + 1
     ) {
-      console.log(isRow, lineNum, i);
+      for (let j = 0; j < i - lastWallIndex; j++) {
+        let pixelState = pixelLine[lastWallIndex + j].state;
+        if (pixelState === PixelState.UNKNOWN) {
+          console.log(
+            `isRow ${isRow}, lineNum ${lineNum}, isFromStart ${isFromStart}, lastWallIndex ${lastWallIndex}, currHint ${currHint}`
+          );
+          answers.push({
+            row: isRow
+              ? lineNum
+              : isFromStart
+              ? lastWallIndex + j
+              : pixelLine.length - (lastWallIndex + j) - 1,
+            col: isRow
+              ? isFromStart
+                ? lastWallIndex + j
+                : pixelLine.length - (lastWallIndex + j) - 1
+              : lineNum,
+            state: PixelState.UNSHADED,
+          });
+        }
+      }
       lastWallIndex = i + 1;
     }
     i++;
@@ -120,9 +235,10 @@ const wrapSatisfiedHints = (
   let inShadedRun = false;
   while (
     satisfiedHintNum <
-    (isFromStart
-      ? satisfiedLineHints.state.start
-      : satisfiedLineHints.state.end)
+      (isFromStart
+        ? satisfiedLineHints.state.start
+        : satisfiedLineHints.state.end) &&
+    index < pixelLine.length
   ) {
     const pixel = pixelLine[index];
     if (pixel.state === PixelState.SHADED && !inShadedRun) {
@@ -165,13 +281,20 @@ export const calculateHint = (
   // Iterate through each row
   for (let i = 0; i < pixelStates.length; i++) {
     const rowHints = hints[i];
-    calculateLineOverlap(pixelStates, rowHints, rowLength, true, i, answers);
+    const pixelRow = pixelStates[i];
+    const rowSatisfiedHints = satisfiedHints[i];
+    calculateLineOverlap(pixelRow, rowHints, rowSatisfiedHints, rowLength, true, i, answers);
   }
 
   // Iternate through each column
   for (let i = 0; i < pixelStates[0].length; i++) {
     const colHints = hints[pixelStates.length + i];
-    calculateLineOverlap(pixelStates, colHints, colLength, false, i, answers);
+    const pixelCol = [];
+    const colSatisfiedHints = satisfiedHints[pixelStates.length + i];
+    for (let j = 0; j < pixelStates.length; j++) {
+      pixelCol.push(pixelStates[j][i]);
+    }
+    calculateLineOverlap(pixelCol, colHints, colSatisfiedHints, colLength, false, i, answers);
   }
 
   // Check if a shaded region needs to extend from a wall
