@@ -53,15 +53,15 @@ const calculateExtends = (
   answers: Hint[]
 ): void => {
   let currHintIndex = 0;
-  let lastWallIndex = 0;
+  let lastWallIndex = 0; // Index last wall occurs before
   let shadedRunLength = 0;
   let shadedRunStart = 0;
   let i = 0;
   let prevShaded = false;
 
   while (i < pixelLine.length && currHintIndex < lineHints.length) {
-    const currHint = lineHints[currHintIndex];
-    const pixelState = pixelLine[i].state;
+    const currHint = parseInt(lineHints[currHintIndex]);
+    let pixelState = pixelLine[i].state;
     // According to current state, this is the start of the shaded region for the current hint
     if (pixelState === PixelState.SHADED && !prevShaded) {
       prevShaded = true;
@@ -75,22 +75,33 @@ const calculateExtends = (
     } else if (pixelState !== PixelState.SHADED && prevShaded) {
       prevShaded = false;
       currHintIndex++;
-      while (i < lastWallIndex + parseInt(currHint)) {
-        answers.push({
-          row: isRow ? lineNum : isFromStart ? i : pixelLine.length - i - 1,
-          col: isRow ? (isFromStart ? i : pixelLine.length - i - 1) : lineNum,
-          state: PixelState.SHADED,
-        });
+      while (i < lastWallIndex + currHint) {
+        pixelState = pixelLine[i].state;
+        if (pixelState !== PixelState.SHADED) {
+          answers.push({
+            row: isRow ? lineNum : isFromStart ? i : pixelLine.length - i - 1,
+            col: isRow ? (isFromStart ? i : pixelLine.length - i - 1) : lineNum,
+            state: PixelState.SHADED,
+          });
+        }
         i++;
       }
-      // Keep going until we find a new left wall or we reach the end
+      // Keep going until we find a new start wall or we reach the end
       while (
         i < pixelLine.length &&
         pixelLine[i].state !== PixelState.UNSHADED
       ) {
         i++;
       }
-      lastWallIndex = i;
+      lastWallIndex = i + 1;
+      // Hint couldn't fit in prev space
+    } else if (
+      pixelState === PixelState.UNSHADED &&
+      !prevShaded &&
+      currHint >= i - lastWallIndex
+    ) {
+      console.log(isRow, lineNum, i);
+      lastWallIndex = i + 1;
     }
     i++;
   }
@@ -184,11 +195,11 @@ export const calculateHint = (
     for (let j = 0; j < pixelStates.length; j++) {
       pixelCol.push(pixelStates[j][i]);
     }
-    calculateExtends(pixelCol, colHints, true, true, i, answers);
+    calculateExtends(pixelCol, colHints, false, true, i, answers);
     calculateExtends(
       pixelCol.slice().reverse(),
       colHints.slice().reverse(),
-      true,
+      false,
       false,
       i,
       answers

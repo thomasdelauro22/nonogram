@@ -13,7 +13,6 @@ const StatePixel = forwardRef<HTMLDivElement,StatePixelTypes>(({
   currState,
 }, ref) => {
   const handleClick = () => {
-    console.log('clicked');
     setMouseState(stateValue);
   };
 
