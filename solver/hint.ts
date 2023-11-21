@@ -1,6 +1,7 @@
 import { Hint, HintState, State } from "@/types/Board";
 import { OverlapTracker } from "@/types/Solver";
 import { PixelState } from "@/utils/constants";
+import _ from "lodash";
 
 const constructExtremeLine = (
   pixelLine: State<PixelState>[],
@@ -25,6 +26,10 @@ const constructExtremeLine = (
     const hintLength = parseInt(lineHints[hintNum]);
     for (let j = 0; j < hintLength; j++) {
       const pixel = pixelLine[index];
+
+      if (index >= pixelLine.length) {
+        break;
+      }
       if (pixel.state !== PixelState.UNSHADED) {
         compactLine.push({ state: PixelState.SHADED, hintNum: hintNum });
       } else {
@@ -32,7 +37,7 @@ const constructExtremeLine = (
         // Remove all shaded pixels added
         // And replace with unshaded
         compactLine.splice(compactLine.length - j, j);
-        for (let k = 0; k < j; k++) {
+        for (let k = 0; k < j + 1; k++) {
           compactLine.push({ state: PixelState.UNSHADED });
         }
         // Skip indexing curr hint and break
@@ -49,6 +54,7 @@ const constructExtremeLine = (
     }
     index++;
   }
+  console.log(compactLine)
   return compactLine;
 };
 
@@ -61,6 +67,7 @@ const calculateLineOverlap = (
   lineNum: number,
   answers: Hint[]
 ): void => {
+
   const lowExtremeLine = constructExtremeLine(
     pixelLine,
     lineHints,
@@ -75,31 +82,29 @@ const calculateLineOverlap = (
     lineLength,
     false
   );
+
   while (lowExtremeLine.length < lineLength) {
     lowExtremeLine.push({ state: PixelState.UNSHADED });
   }
   while (highExtremeLine.length < lineLength) {
     highExtremeLine.unshift({ state: PixelState.UNSHADED });
   }
-  for (let pixel = 0; pixel < lowExtremeLine.length; pixel++) {
-    const lowPixel = lowExtremeLine[pixel];
-    const highPixel = highExtremeLine[pixel];
-    if (
-      lowPixel.state === PixelState.SHADED &&
-      highPixel.state === PixelState.SHADED &&
-      lowPixel.hintNum === highPixel.hintNum &&
-      pixelLine[pixel].state !== PixelState.SHADED
-    ) {
-      console.log(
-        `${JSON.stringify(lowExtremeLine)} ${JSON.stringify(highExtremeLine)}`
-      );
-      answers.push({
-        row: isRow ? lineNum : pixel,
-        col: isRow ? pixel : lineNum,
-        state: PixelState.SHADED,
-      });
+    for (let pixel = 0; pixel < lowExtremeLine.length; pixel++) {
+      const lowPixel = lowExtremeLine[pixel];
+      const highPixel = highExtremeLine[pixel];
+      if (
+        lowPixel.state === PixelState.SHADED &&
+        highPixel.state === PixelState.SHADED &&
+        lowPixel.hintNum === highPixel.hintNum &&
+        pixelLine[pixel].state !== PixelState.SHADED
+      ) {
+        answers.push({
+          row: isRow ? lineNum : pixel,
+          col: isRow ? pixel : lineNum,
+          state: PixelState.SHADED,
+        });
+      }
     }
-  }
 };
 
 const calculateExtends = (
@@ -153,6 +158,7 @@ const calculateExtends = (
         });
       }
       prevShaded = false;
+      shadedRunLength = 0;
       currHintIndex++;
       while (i < lastWallIndex + currHint) {
         pixelState = pixelLine[i].state;
@@ -183,9 +189,6 @@ const calculateExtends = (
       for (let j = 0; j < i - lastWallIndex; j++) {
         let pixelState = pixelLine[lastWallIndex + j].state;
         if (pixelState === PixelState.UNKNOWN) {
-          console.log(
-            `isRow ${isRow}, lineNum ${lineNum}, isFromStart ${isFromStart}, lastWallIndex ${lastWallIndex}, currHint ${currHint}`
-          );
           answers.push({
             row: isRow
               ? lineNum
