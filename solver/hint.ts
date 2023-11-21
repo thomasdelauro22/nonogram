@@ -2,6 +2,56 @@ import { Hint, HintState, State } from "@/types/Board";
 import { OverlapTracker } from "@/types/Solver";
 import { PixelState } from "@/utils/constants";
 
+const constructExtremeLine = (
+  pixelLine: State<PixelState>[],
+  lineHints: string[],
+  satisfiedLineHints: State<HintState>,
+  lineLength: number,
+  isFromStart: boolean
+): OverlapTracker[] => {
+  let index = 0;
+  let hintNum = 0;
+  let skipWrap = false;
+  const compactLine: OverlapTracker[] = [];
+  while (
+    hintNum <
+      lineHints.length -
+        (isFromStart
+          ? satisfiedLineHints.state.end
+          : satisfiedLineHints.state.start) &&
+    index < pixelLine.length
+  ) {
+    skipWrap = false;
+    const hintLength = parseInt(lineHints[hintNum]);
+    for (let j = 0; j < hintLength; j++) {
+      const pixel = pixelLine[index];
+      if (pixel.state !== PixelState.UNSHADED) {
+        compactLine.push({ state: PixelState.SHADED, hintNum: hintNum });
+      } else {
+        // We haven't finished the hint yet
+        // Remove all shaded pixels added
+        // And replace with unshaded
+        compactLine.splice(compactLine.length - j, j);
+        for (let k = 0; k < j; k++) {
+          compactLine.push({ state: PixelState.UNSHADED });
+        }
+        // Skip indexing curr hint and break
+        skipWrap = true;
+        break;
+      }
+      index++;
+    }
+    if (!skipWrap) {
+      if (compactLine.length < lineLength && hintNum !== lineHints.length - 1) {
+        compactLine.push({ state: PixelState.UNSHADED });
+      }
+      hintNum++;
+    }
+    index++;
+  }
+  return compactLine;
+};
+
 const calculateLineOverlap = (
   pixelLine: State<PixelState>[],
   lineHints: string[],
@@ -11,89 +61,24 @@ const calculateLineOverlap = (
   lineNum: number,
   answers: Hint[]
 ): void => {
-  let index = 0;
-  let hintNum = 0;
-  let skipWrap = false;
-  const startCompactLine: OverlapTracker[] = [];
-  const endCompactLine: OverlapTracker[] = [];
-  while (
-    hintNum < lineHints.length - satisfiedLineHints.state.end &&
-    index < pixelLine.length
-  ) {
-    skipWrap = false;
-    const hintLength = parseInt(lineHints[hintNum]);
-    for (let j = 0; j < hintLength; j++) {
-      const pixel = pixelLine[index];
-      if (pixel.state !== PixelState.UNSHADED) {
-        startCompactLine.push({ state: PixelState.SHADED, hintNum: hintNum });
-      } else {
-        // We haven't finished the hint yet
-        // Remove all shaded pixels added
-        // And replace with unshaded
-        startCompactLine.splice(startCompactLine.length - j, j);
-        for (let k = 0; k < j; k++) {
-          startCompactLine.push({ state: PixelState.UNSHADED });
-        }
-        // Skip indexing curr hint and break
-        skipWrap = true;
-        break;
-      }
-      index++;
-    }
-    if (!skipWrap) {
-      if (
-        startCompactLine.length < lineLength &&
-        hintNum !== lineHints.length - 1
-      ) {
-        startCompactLine.push({ state: PixelState.UNSHADED });
-      }
-      hintNum++;
-    }
-    index++;
-  }
-  index = 0;
-  hintNum = 0;
-  skipWrap = false;
-  while (
-    hintNum < lineHints.length - satisfiedLineHints.state.start &&
-    index < pixelLine.length
-  ) {
-    skipWrap = false;
-    const hintLength = parseInt(lineHints[lineHints.length - hintNum]);
-    for (let j = 0; j < hintLength; j++) {
-      const pixel = pixelLine[pixelLine.length - index - 1];
-      if (pixel.state !== PixelState.UNSHADED) {
-        endCompactLine.push({ state: PixelState.SHADED, hintNum: lineHints.length - hintNum });
-      } else {
-        // We haven't finished the hint yet
-        // Remove all shaded pixels added
-        // And replace with unshaded
-        endCompactLine.splice(endCompactLine.length - j, j);
-        for (let k = 0; k < j; k++) {
-          endCompactLine.push({ state: PixelState.UNSHADED });
-        }
-        // Skip indexing curr hint and break
-        skipWrap = true;
-        break;
-      }
-      index++;
-    }
-    if (!skipWrap) {
-      if (
-        endCompactLine.length < lineLength &&
-        hintNum !== lineHints.length - 1
-      ) {
-        endCompactLine.push({ state: PixelState.UNSHADED });
-      }
-      hintNum++;
-    }
-    index++;
-  }
-  const lowExtremeLine = startCompactLine;
-  const highExtremeLine = endCompactLine;
-  console.log(lowExtremeLine, highExtremeLine)
+  const lowExtremeLine = constructExtremeLine(
+    pixelLine,
+    lineHints,
+    satisfiedLineHints,
+    lineLength,
+    true
+  );
+  const highExtremeLine = constructExtremeLine(
+    pixelLine.slice().reverse(),
+    lineHints,
+    satisfiedLineHints,
+    lineLength,
+    false
+  );
   while (lowExtremeLine.length < lineLength) {
     lowExtremeLine.push({ state: PixelState.UNSHADED });
+  }
+  while (highExtremeLine.length < lineLength) {
     highExtremeLine.unshift({ state: PixelState.UNSHADED });
   }
   for (let pixel = 0; pixel < lowExtremeLine.length; pixel++) {
@@ -283,7 +268,15 @@ export const calculateHint = (
     const rowHints = hints[i];
     const pixelRow = pixelStates[i];
     const rowSatisfiedHints = satisfiedHints[i];
-    calculateLineOverlap(pixelRow, rowHints, rowSatisfiedHints, rowLength, true, i, answers);
+    calculateLineOverlap(
+      pixelRow,
+      rowHints,
+      rowSatisfiedHints,
+      rowLength,
+      true,
+      i,
+      answers
+    );
   }
 
   // Iternate through each column
@@ -294,7 +287,15 @@ export const calculateHint = (
     for (let j = 0; j < pixelStates.length; j++) {
       pixelCol.push(pixelStates[j][i]);
     }
-    calculateLineOverlap(pixelCol, colHints, colSatisfiedHints, colLength, false, i, answers);
+    calculateLineOverlap(
+      pixelCol,
+      colHints,
+      colSatisfiedHints,
+      colLength,
+      false,
+      i,
+      answers
+    );
   }
 
   // Check if a shaded region needs to extend from a wall
