@@ -1,4 +1,5 @@
 import { PixelState } from "@/utils/constants";
+import { forwardRef } from "react";
 
 export type StatePixelTypes = {
   stateValue: PixelState;
@@ -6,11 +7,11 @@ export type StatePixelTypes = {
   currState: PixelState;
 };
 
-const Pixel: React.FC<StatePixelTypes> = ({
+const StatePixel = forwardRef<HTMLDivElement,StatePixelTypes>(({
   stateValue,
   setMouseState,
   currState,
-}) => {
+}, ref) => {
   const handleClick = () => {
     setMouseState(stateValue);
   };
@@ -19,6 +20,7 @@ const Pixel: React.FC<StatePixelTypes> = ({
 
   return (
     <div
+      ref={ref}
       className={`${
         hasBorder ? "border-2 border-yellow-300" : ""
       } ${stateValue} m-1 pointer`}
@@ -37,6 +39,6 @@ const Pixel: React.FC<StatePixelTypes> = ({
       )}
     </div>
   );
-};
+});
 
-export default Pixel;
+export default StatePixel;

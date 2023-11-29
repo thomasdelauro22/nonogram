@@ -4,21 +4,23 @@ import Pixel from "./Pixel";
 import StatePixel from "./StatePixel";
 import { isLineComplete, numHintsSatisfied } from "@/solver/line";
 import Button from "./Button";
-import { State } from "@/types/Board";
+import { HintState, State } from "@/types/Board";
 import { PixelState } from "@/utils/constants";
+import { calculateHint } from "@/solver/hint";
 
 export type GameboardTypes = {
   width: number;
   height: number;
   hints: string[][]; // given [rowHints, colHints]
+  swapPuzzle: () => void;
 };
 
-export type HintState = {
-  start: number;
-  end: number;
-};
-
-const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
+const Gameboard: React.FC<GameboardTypes> = ({
+  width,
+  height,
+  hints,
+  swapPuzzle,
+}) => {
   let pixelArray: JSX.Element[][] = [];
   let pixelStates: State<PixelState>[][] = [];
   let pixelRefs: RefObject<HTMLDivElement>[][] = [];
@@ -37,6 +39,24 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     }
   };
 
+  const fillHint = () => {
+    const hint = calculateHint(pixelStates, hints, satisfiedHints);
+    if (hint) {
+      if (
+        hint.state === PixelState.SHADED &&
+        mouseState === PixelState.UNSHADED
+      ) {
+        setTimeout(() => shadedMouseStatePixelRef.current!.click());
+      } else if (
+        hint.state === PixelState.UNSHADED &&
+        mouseState === PixelState.SHADED
+      ) {
+        setTimeout(() => unshadedMouseStatePixelRef.current!.click());
+      }
+      setTimeout(() => pixelRefs[hint.row][hint.col].current!.click());
+    }
+  };
+
   // Pixels set this value each time they change
   // so we can check the completion status of the line
   const [stateRowChange, setStateRowChange] = useState(-1);
@@ -44,6 +64,8 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
 
   // Controls what state the pixels are set to when clicked
   const [mouseState, setMouseState] = useState(PixelState.SHADED);
+  const unshadedMouseStatePixelRef = useRef<HTMLDivElement>(null);
+  const shadedMouseStatePixelRef = useRef<HTMLDivElement>(null);
 
   // Used for drag clicking
   const [mouseDownRow, setMouseDownRow] = useState(-1);
@@ -109,7 +131,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           end: 0,
         });
       } else if (!pixelRowStates.includes(PixelState.UNKNOWN)) {
-        // No unknowns and not all hints satisfied 
+        // No unknowns and not all hints satisfied
         satisfiedHints[rowChange].setState({
           start: 0,
           end: 0,
@@ -162,7 +184,7 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
           end: 0,
         });
       } else if (!pixelColStates.includes(PixelState.UNKNOWN)) {
-        // No unknowns and not all hints satisfied 
+        // No unknowns and not all hints satisfied
         satisfiedHints[colChange + height].setState({
           start: 0,
           end: 0,
@@ -298,7 +320,10 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
     );
   }
   pixelArray.push([
-    <div key={-1} className="flex flex-row relative justify-center ml-[1.3rem] -mt-48">
+    <div
+      key={-1}
+      className="flex flex-row relative justify-center ml-[1.3rem] -mt-48"
+    >
       {colHints}
     </div>,
   ]);
@@ -349,18 +374,28 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
       {pixelArray}
       <div className="flex flex-row relative justify-center mt-8">
         <StatePixel
+          ref={shadedMouseStatePixelRef}
           currState={mouseState}
           stateValue={PixelState.SHADED}
           setMouseState={setMouseState}
         />
         <StatePixel
+          ref={unshadedMouseStatePixelRef}
           currState={mouseState}
           stateValue={PixelState.UNSHADED}
           setMouseState={setMouseState}
         />
       </div>
-      <div className="flex flex-row relative justify-center mt-8">
-        <Button text="Reset" onClick={resetBoard} className="mb-16" />
+      <div className="flex flex-row relative justify-center pt-2">
+        <div className="pr-2">
+          <Button text="Hint" onClick={fillHint} className="mb-16" />
+        </div>
+        <div className="pl-2 pr-2">
+          <Button text="Reset" onClick={resetBoard} className="mb-16" />
+        </div>
+        <div className="pl-2">
+          <Button text="Swap Puzzle" onClick={swapPuzzle} className="mb-16" />
+        </div>
       </div>
     </>
   );
