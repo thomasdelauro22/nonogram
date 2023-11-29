@@ -12,9 +12,15 @@ export type GameboardTypes = {
   width: number;
   height: number;
   hints: string[][]; // given [rowHints, colHints]
+  swapPuzzle: () => void;
 };
 
-const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
+const Gameboard: React.FC<GameboardTypes> = ({
+  width,
+  height,
+  hints,
+  swapPuzzle,
+}) => {
   let pixelArray: JSX.Element[][] = [];
   let pixelStates: State<PixelState>[][] = [];
   let pixelRefs: RefObject<HTMLDivElement>[][] = [];
@@ -384,8 +390,11 @@ const Gameboard: React.FC<GameboardTypes> = ({ width, height, hints }) => {
         <div className="pr-2">
           <Button text="Hint" onClick={fillHint} className="mb-16" />
         </div>
-        <div className="pl-2">
+        <div className="pl-2 pr-2">
           <Button text="Reset" onClick={resetBoard} className="mb-16" />
+        </div>
+        <div className="pl-2">
+          <Button text="Swap Puzzle" onClick={swapPuzzle} className="mb-16" />
         </div>
       </div>
     </>
