@@ -315,14 +315,14 @@ const Gameboard: React.FC<GameboardTypes> = ({
         endHintsSatisfied={satisfiedHints[height + j].state.end}
         isColHint={true}
         longestColHintLen={longestColHintLen}
-        classname="w-[2.06075rem] noHover"
+        classname="w-[1.6875rem] noHover"
       ></Hints>
     );
   }
   pixelArray.push([
     <div
       key={-1}
-      className="flex flex-row relative justify-center ml-[1.3rem] -mt-48"
+      className="flex flex-row relative justify-center ml-[0.75rem] -mt-48"
     >
       {colHints}
     </div>,
@@ -393,9 +393,9 @@ const Gameboard: React.FC<GameboardTypes> = ({
         <div className="pl-2 pr-2">
           <Button text="Reset" onClick={resetBoard} className="mb-16" />
         </div>
-        <div className="pl-2">
+        {/* <div className="pl-2">
           <Button text="Swap Puzzle" onClick={swapPuzzle} className="mb-16" />
-        </div>
+        </div> */}
       </div>
     </>
   );

@@ -1,19 +1,14 @@
 import Button from "@/components/Button";
 import Gameboard from "@/components/Gameboard";
-import { hints1, hints2 } from "@/puzzles";
+import { hints1, hints3 } from "@/puzzles";
 import _ from "lodash";
 import { useState } from "react";
 
 export default function Home() {
-  const boardWidth = 10;
-  const boardHeight = 10;
-  const [hints, setHints] = useState(hints1);
+  const boardWidth = 20;
+  const boardHeight = 20;
   const swapPuzzle = () => {
-    if (_.isEqual(hints1, hints)) {
-      setHints(hints2);
-    } else {
-      setHints(hints1);
-    }
+
   };
 
   return (
@@ -21,7 +16,7 @@ export default function Home() {
       <Gameboard
         width={boardWidth}
         height={boardHeight}
-        hints={hints}
+        hints={hints3}
         swapPuzzle={swapPuzzle}
       />
     </div>
