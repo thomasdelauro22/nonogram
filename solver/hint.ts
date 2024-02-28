@@ -71,11 +71,11 @@ const constructExtremeLine = (
     }
     index++;
   }
-  console.log(
+  /*console.log(
     `pixelLine: ${pixelLine.map(
       (x) => x.state
     )}, lineHints: ${lineHints} compactLine: ${compactLine.map((x) => x.state)}`
-  );
+  );*/
   return compactLine;
 };
 
@@ -111,13 +111,13 @@ const calculateLineOverlap = (
   while (highExtremeLine.length < lineLength) {
     highExtremeLine.unshift({ state: PixelState.UNSHADED });
   }
-  console.log(
+  /*console.log(
     `lowExtremeLine: ${lowExtremeLine.map(
       (x) => `${x.state}, ${x.hintNum}`
     )} highExtremeLine: ${highExtremeLine.map(
       (x) => `${x.state}, ${x.hintNum}`
     )}`
-  );
+  );*/
 
   let lowHintNum = 0;
   let highHintNum = 0;
@@ -230,13 +230,6 @@ const calculateExtends = (
       shadedRunLength = 0;
       currHintIndex++;
       while (i < lastWallIndex + currHint) {
-        console.log(isRow);
-        console.log(isFromStart)
-        console.log(lastWallIndex)
-        console.log(lineHints)
-        console.log(currHint);
-        console.log(i);
-        console.log(pixelLine)
         pixelState = pixelLine[i].state;
         if (pixelState !== PixelState.SHADED) {
           answers.push({
@@ -254,10 +247,13 @@ const calculateExtends = (
         i < pixelLine.length &&
         pixelLine[i].state !== PixelState.UNSHADED
       ) {
-        skippedPixels ++;
+        skippedPixels++;
         i++;
       }
-      if (lineHints[currHintIndex] === undefined || skippedPixels >= parseInt(lineHints[currHintIndex])) {
+      if (
+        lineHints[currHintIndex] === undefined ||
+        skippedPixels >= parseInt(lineHints[currHintIndex])
+      ) {
         return;
       }
       lastWallIndex = i + 1;
@@ -289,7 +285,7 @@ const calculateExtends = (
       lastWallIndex = i + 1;
       // Too much freedom in pixel placement
     } else if (lastWallIndex === i - currHint) {
-        return;
+      return;
     }
     i++;
   }
@@ -453,11 +449,9 @@ export const calculateHint = (
   answers.sort(function (x, y) {
     if (y.state === PixelState.SHADED && x.state !== PixelState.SHADED) {
       return 1;
-    }
-    else if (x.state === PixelState.SHADED && y.state !== PixelState.SHADED) {
-        return -1;
-    }
-    else {
+    } else if (x.state === PixelState.SHADED && y.state !== PixelState.SHADED) {
+      return -1;
+    } else {
       if (x.row < y.row) {
         return -1;
       } else if (y.row < x.row) {
